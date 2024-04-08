@@ -99,11 +99,12 @@ const MessageList: React.FC = () => {
       sx={{
         backgroundColor: '#EEEEEE',
         height: `calc(100vh - ${theme.spacing(8)})`,
+        maxWidth: '100vw',
+        overflowX: 'hidden',
+        overflowY: 'auto',
         paddingInline: theme.spacing(2),
         position: 'relative',
           insetBlockStart: theme.spacing(8),
-        overflowX: 'hidden',
-        overflowY: 'auto',
     }}>
       {messages.map((msg, idx) => (
         <div
