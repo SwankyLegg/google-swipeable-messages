@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Message from './Message';
 import { Box, Button, useTheme } from '@mui/material';
-import { VariableSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
 
 const MessageList: React.FC = () => {
-  // const [state, setState] = useState<State>(initialState);
-
   const theme = useTheme();
 
   const [error, setError] = useState<string | null>(null);
@@ -34,53 +30,44 @@ const MessageList: React.FC = () => {
       } else if (data.messages) {
         setMessages(data.messages);
       }
-      // setState(prevState => ({
-      //   ...prevState,
-      //   messages: [...prevState.messages, ...data.messages],
-      //   pageToken: data.pageToken,
-      // }));
 
       setPageToken(data.pageToken);
-      console.info(messages);
     } catch (error) {
       setError(error.message);
-      // setState(prevState => ({ ...prevState }));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pageToken]);
 
+  const handleScroll = useCallback((evt) => {
+    console.info(evt.target);
+    const { clientHeight, scrollHeight, scrollTop } = evt.target;
+    const pct = scrollTop / (scrollHeight - clientHeight) * 100
+    if (pct > 80) {
+      fetchData(pageToken);
+    }
+  }, [fetchData, pageToken]);
+
+  // First load
   useEffect(() => {
     fetchData(null);
-  }, [fetchData]);
-
-  const rowHeights = new Array(99)
-  .fill(true)
-  .map(() => 80 + Math.round(Math.random() * 50));
-
-  const getItemSize = (idx: number) => {
-    return rowHeights[idx];
-  };
-
-  const Row = ({ index, style }) => {
-    return (
-      // <li style={style}>Row {index}
-      <li style={style}>
-        <Message {...messages[index]} />
-      </li>
-    )
-  };
+  }, []);
 
   if (loading && !messages?.length) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <Box component="ul" sx={{
-      height: `calc(100vh - ${theme.spacing(8)})`,
-      position: 'relative',
-      insetBlockStart: theme.spacing(8)
+    <Box
+      component="ul"
+      id="MessageList"
+      onScroll={handleScroll}
+      sx={{
+        height: `calc(100vh - ${theme.spacing(8)})`,
+        position: 'relative',
+        insetBlockStart: theme.spacing(8),
+        overflowY: 'auto',
     }}>
-      <AutoSizer>
+      {/* <AutoSizer>
         {({ height, width }) => {
           return (
             <List
@@ -93,7 +80,10 @@ const MessageList: React.FC = () => {
             </List>
           )
         }}
-      </AutoSizer>
+      </AutoSizer> */}
+      {messages.map((msg, idx) => (
+        <Message {...msg} key={`${msg.id}-${idx}`}/>
+      ))}
       {pageToken && (
         <Button
           onClick={() => fetchData(pageToken)}

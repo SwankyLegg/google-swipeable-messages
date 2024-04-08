@@ -38,7 +38,7 @@ const Message = ({
           <Typography>{dayjs(updated).fromNow()}</Typography>
         </Box>
       </Box>
-      <Typography>
+      <Typography sx={{ marginBlockStart: theme.spacing(2) }}>
         {content}
       </Typography>
     </Card>
