@@ -1,19 +1,18 @@
-import { Avatar, Box, Card, Typography, useTheme } from '@mui/material';
+import { Box, Card, Typography, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
+import { memo } from 'react';
 
-interface Author {
-  name: string;
-  photoUrl: string;
-}
+import Avatar from './Avatar';
 
 interface Message {
   author: Author;
   content: string;
   id: string;
+  realId?: string;
   updated: string;
 }
 
-const Message = ({
+const Message = memo(({
   author,
   content,
   id,
@@ -24,25 +23,37 @@ const Message = ({
     <Card
       id={id}
       sx={{
-        marginBlockStart: theme.spacing(2),
         padding: theme.spacing(2)
       }}
     >
       <Box sx={{ display: 'flex '}}>
         <Avatar
-          alt={author.name}
-          src={author.photoUrl}
+          name={author.name}
+          photoUrl={author.photoUrl}
         />
         <Box sx={{ marginInlineStart: theme.spacing(2) }}>
-          <Typography>{author.name}</Typography>
-          <Typography>{dayjs(updated).fromNow()}</Typography>
+          <Typography
+            sx={{ fontWeight: 600 }}
+            variant='body1'
+          >
+            {author.name}
+          </Typography>
+          <Typography
+            sx={{ color: 'hsl(0 0 30%)' }}
+            variant='body2'
+          >
+            {dayjs(updated).fromNow()}
+          </Typography>
         </Box>
       </Box>
-      <Typography>
+      <Typography
+        sx={{ marginBlockStart: theme.spacing(2) }}
+        variant='body1'
+      >
         {content}
       </Typography>
     </Card>
   );
-};
+});
 
 export default Message;

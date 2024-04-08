@@ -1,26 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { Box, useTheme } from '@mui/material';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+
+import endpoint from '../utils/endpoint';
+import LoadButton from './LoadButton';
 import Message from './Message';
-import { Box, Button, useTheme } from '@mui/material';
-import { VariableSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import SwipeableCard from './SwipeableCard';
 
 const MessageList: React.FC = () => {
-  // const [state, setState] = useState<State>(initialState);
-
   const theme = useTheme();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [messages, setMessages] = useState<Message[]>();
   const [pageToken, setPageToken] = useState<string | null>();
+  const [fetchLimit, setFetchLimit] = useState(25);
+
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   const fetchData = useCallback(async (pageToken: string | null = null) => {
-    // setState(prevState => ({ ...prevState, loading: true }));
     setLoading(true);
 
-    let url = 'http://message-list.appspot.com/messages';
+    let url = `${endpoint}/messages?limit=${fetchLimit}`;
     if (pageToken) {
-      url += `?pageToken=${pageToken}`;
+      url += `&pageToken=${pageToken}`;
+      setFetchLimit(50);
     }
 
     try {
@@ -29,78 +32,99 @@ const MessageList: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: MessagesResponse = await response.json();
+      const newMessages = data.messages.map((msg, idx) => {
+        msg.realId = `${msg.id}-${idx}`;
+        return msg;
+      });
       if (messages?.length > 0) {
-        setMessages([...messages, ...data.messages]);
+        setMessages([...messages, ...newMessages]);
       } else if (data.messages) {
-        setMessages(data.messages);
+        setMessages(newMessages);
       }
-      // setState(prevState => ({
-      //   ...prevState,
-      //   messages: [...prevState.messages, ...data.messages],
-      //   pageToken: data.pageToken,
-      // }));
 
       setPageToken(data.pageToken);
-      console.info(messages);
     } catch (error) {
       setError(error.message);
-      // setState(prevState => ({ ...prevState }));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchLimit, messages]);
 
+  const moveUpMs = 500;
+  const handleSwipeAway = (index) => {
+    const height = refs.current[index]?.offsetHeight || 0;
+
+    // Update styles to transition remaining messages up
+    refs.current.slice(index + 1, index + 6).forEach((el) => {
+      if (!el) return;
+      el.style.transform = `translate3d(0,-${height}px,0)`;
+    });
+
+    refs.current[index].style.opacity = '0';
+    refs.current[index].ontransitionend = () => {
+      // Remove the ref of the swiped away message
+      refs.current.splice(index, 1);
+      setMessages(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleScroll = (evt) => {
+    const { clientHeight, scrollHeight, scrollTop } = evt.target;
+    const pct = scrollTop / (scrollHeight - clientHeight) * 100
+    if (pct > 75) {
+      fetchData(pageToken);
+    }
+  };
+
+  // First load
   useEffect(() => {
     fetchData(null);
-  }, [fetchData]);
+  }, []);
 
-  const rowHeights = new Array(99)
-  .fill(true)
-  .map(() => 80 + Math.round(Math.random() * 50));
-
-  const getItemSize = (idx: number) => {
-    return rowHeights[idx];
-  };
-
-  const Row = ({ index, style }) => {
-    return (
-      // <li style={style}>Row {index}
-      <li style={style}>
-        <Message {...messages[index]} />
-      </li>
-    )
-  };
+  useLayoutEffect(() => {
+    refs.current.forEach((el) => {
+      if (!el?.style) return;
+      el.style.transform = `translate3d(0,0,0)`;
+    });
+  }, [messages]);
 
   if (loading && !messages?.length) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <Box component="ul" sx={{
-      height: `calc(100vh - ${theme.spacing(8)})`,
-      position: 'relative',
-      insetBlockStart: theme.spacing(8)
+    <Box
+      component="ul"
+      id="MessageList"
+      onScroll={handleScroll}
+      sx={{
+        backgroundColor: '#EEEEEE',
+        height: `calc(100vh - ${theme.spacing(8)})`,
+        maxWidth: '100vw',
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        paddingInline: theme.spacing(2),
+        position: 'relative',
+          insetBlockStart: theme.spacing(8),
     }}>
-      <AutoSizer>
-        {({ height, width }) => {
-          return (
-            <List
-              height={height}
-              itemCount={messages.length - 1}
-              itemSize={getItemSize}
-              width={width}
-            >
-              {Row}
-            </List>
-          )
-        }}
-      </AutoSizer>
-      {pageToken && (
-        <Button
-          onClick={() => fetchData(pageToken)}
-          variant="contained"
+      {messages.map((msg, idx) => (
+        <div
+          key={`${msg.realId}-${idx}`}
+          ref={el => refs.current[idx] = el}
+          style={{
+            paddingBlockStart: theme.spacing(2),
+            transition: `opacity ${moveUpMs}ms ease, transform ${moveUpMs}ms ease`
+          }}
         >
-          Load More
-        </Button>
+          <SwipeableCard
+            realId={msg.realId}
+            onSwipeAway={() => handleSwipeAway(idx)}
+          >
+            <Message {...msg} />
+          </SwipeableCard>
+        </div>
+      ))}
+      {(pageToken || messages.length < fetchLimit) && (
+        <LoadButton onClick={() => fetchData(pageToken)} />
       )}
     </Box>
   );

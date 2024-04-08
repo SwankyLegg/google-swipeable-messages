@@ -4,10 +4,11 @@ interface Author {
 }
 
 interface Message {
-  id: string;
   author: Author;
-  updated: string;
   content: string;
+  id: string;
+  realId?: string;
+  updated: string;
 }
 
 interface MessagesResponse {
