@@ -22,7 +22,13 @@ const AppHeader: React.FC = () => {
         }}>
           <MenuIcon />
         </IconButton>
-        <Typography sx={{ marginInlineStart: '1rem' }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            marginInlineStart: '1em'
+          }}
+          variant={'h5'}
+        >
           Messages
         </Typography>
       </Container>

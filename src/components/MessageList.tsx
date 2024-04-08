@@ -1,7 +1,8 @@
-import { Box, Button, useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import endpoint from '../utils/endpoint';
+import LoadButton from './LoadButton';
 import Message from './Message';
 import SwipeableCard from './SwipeableCard';
 
@@ -101,7 +102,7 @@ const MessageList: React.FC = () => {
         paddingInline: theme.spacing(2),
         position: 'relative',
           insetBlockStart: theme.spacing(8),
-        overflowX: 'visible',
+        overflowX: 'hidden',
         overflowY: 'auto',
     }}>
       {messages.map((msg, idx) => (
@@ -122,13 +123,7 @@ const MessageList: React.FC = () => {
         </div>
       ))}
       {(pageToken || messages.length < fetchLimit) && (
-        <Button
-          onClick={() => fetchData(pageToken)}
-          sx={{ margin: '0 auto' }}
-          variant="contained"
-        >
-          Load More
-        </Button>
+        <LoadButton onClick={() => fetchData(pageToken)} />
       )}
     </Box>
   );

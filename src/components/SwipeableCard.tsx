@@ -18,35 +18,34 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
   const [swiping, setSwiping] = useState<boolean>(false);
   const [isScrolling, setIsScrolling] = useState<boolean>(false);
 
-  const handleTouchStart = (event: React.TouchEvent) => {
-    setStartX(event.touches[0].clientX);
-    setStartY(event.touches[0].clientY);
-    setIsScrolling(false);  // Reset scrolling flag on new touch
+  const handleInputStart = (posX: number, posY: number) => {
+    setStartX(posX);
+    setStartY(posY);
+    setSwiping(true);
+    setIsScrolling(false); // Reset scrolling flag
   };
 
-  const handleTouchMove = (event: React.TouchEvent) => {
-    const touchX = event.touches[0].clientX;
-    const touchY = event.touches[0].clientY;
-    const diffX = Math.abs(touchX - startX);
-    const diffY = Math.abs(touchY - startY);
+  const handleInputMove = (posX: number, posY: number) => {
+    const diffX = Math.abs(posX - startX);
+    const diffY = Math.abs(posY - startY);
 
-    if (!isScrolling) {
+    if (swiping && !isScrolling) {
       // Determine if the gesture is more horizontal or vertical
-      if (diffY > diffX && diffY > 1) {
+      if (diffY > diffX && diffY > 5) {
         // Lock swipe if vertical scrolling is dominant
         setIsScrolling(true);
-      } else if (diffX > 1) {
+      } else if (diffX > 5) {
         setSwiping(true);
-        setCurrentX(touchX - startX);
+        setCurrentX(posX - startX);
       }
-      setCurrentX(touchX - startX);
+      setCurrentX(posX - startX);
     }
   };
 
-  const handleTouchEnd = () => {
+  // Handle mouse and touch end
+  const handleInputEnd = () => {
     setSwiping(false);
-    // Swipe threshold
-    const threshold = window.outerWidth / 5;
+    const threshold = window.outerWidth / 10;
     if (Math.abs(currentX) > threshold) {
       onSwipeAway(realId);
     } else {
@@ -55,13 +54,24 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
   };
 
   const cssX = Math.round(currentX);
-
   return (
     <Box
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={(evt) => {
+        const { clientX, clientY } = evt.touches[0];
+        handleInputStart(clientX, clientY);
+      }}
+      onTouchMove={(evt) => {
+        const { clientX, clientY } = evt.touches[0];
+        handleInputMove(clientX, clientY);
+      }}
+      onTouchEnd={handleInputEnd}
+      onMouseDown={(evt) => handleInputStart(evt.clientX, evt.clientY)}
+      onMouseMove={(evt) => {
+        handleInputMove(evt.clientX, evt.clientY)
+      }}
+      onMouseUp={handleInputEnd}
       sx={{
+        cursor: swiping ? 'grabbing' : 'grab',
         opacity: 1 - Math.min(1, Math.abs(cssX) / 100),
         transform: `translate3d(${cssX}px,0,0)`,
         transitionDuration: swiping ? 0 : '300ms',

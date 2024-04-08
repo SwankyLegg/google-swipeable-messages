@@ -32,11 +32,24 @@ const Message = memo(({
           photoUrl={author.photoUrl}
         />
         <Box sx={{ marginInlineStart: theme.spacing(2) }}>
-          <Typography>{author.name}</Typography>
-          <Typography>{dayjs(updated).fromNow()}</Typography>
+          <Typography
+            sx={{ fontWeight: 600 }}
+            variant='body1'
+          >
+            {author.name}
+          </Typography>
+          <Typography
+            sx={{ color: 'hsl(0 0 30%)' }}
+            variant='body2'
+          >
+            {dayjs(updated).fromNow()}
+          </Typography>
         </Box>
       </Box>
-      <Typography sx={{ marginBlockStart: theme.spacing(2) }}>
+      <Typography
+        sx={{ marginBlockStart: theme.spacing(2) }}
+        variant='body1'
+      >
         {content}
       </Typography>
     </Card>
