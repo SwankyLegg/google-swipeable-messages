@@ -15,6 +15,7 @@ function App() {
       <AppHeader />
       <Container sx={{
         // paddingBlockStart: theme.spacing(8)
+        padding: 0
       }}>
         <MessageList />
       </Container>
