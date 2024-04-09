@@ -15,7 +15,7 @@ const MessageList: React.FC = () => {
   const [pageToken, setPageToken] = useState<string | null>();
   const [fetchLimit, setFetchLimit] = useState(25);
 
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const refs = useRef<(HTMLLIElement | null)[]>([]);
 
   const fetchData = useCallback(async (pageToken: string | null = null) => {
     setLoading(true);
@@ -70,8 +70,13 @@ const MessageList: React.FC = () => {
 
   const handleScroll = (evt) => {
     const { clientHeight, scrollHeight, scrollTop } = evt.target;
-    const pct = scrollTop / (scrollHeight - clientHeight) * 100
-    if (pct > 75) {
+    // const pct = scrollTop / (scrollHeight - clientHeight) * 100
+    // if (pct > 75) {
+    //   fetchData(pageToken);
+    // }
+    console.info(scrollHeight - scrollTop, clientHeight);
+    console.log(clientHeight)
+    if ((scrollHeight - scrollTop) < (3 * clientHeight)) {
       fetchData(pageToken);
     }
   };
@@ -105,9 +110,10 @@ const MessageList: React.FC = () => {
         paddingInline: theme.spacing(2),
         position: 'relative',
           insetBlockStart: theme.spacing(8),
+        '-webkit-overflow-scrolling': 'auto'
     }}>
       {messages.map((msg, idx) => (
-        <div
+        <li
           key={`${msg.realId}-${idx}`}
           ref={el => refs.current[idx] = el}
           style={{
@@ -121,7 +127,7 @@ const MessageList: React.FC = () => {
           >
             <Message {...msg} />
           </SwipeableCard>
-        </div>
+        </li>
       ))}
       {(pageToken || messages.length < fetchLimit) && (
         <LoadButton onClick={() => fetchData(pageToken)} />
