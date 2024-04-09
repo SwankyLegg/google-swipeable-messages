@@ -1,5 +1,3 @@
-# React + TypeScript + Vite
-
 # Google Infinitely Scrolling Message List
 
 ## To run
