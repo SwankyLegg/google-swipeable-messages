@@ -72,7 +72,7 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
       onMouseUp={handleInputEnd}
       sx={{
         cursor: swiping ? 'grabbing' : 'grab',
-        opacity: 1 - Math.min(1, Math.abs(cssX) / 100),
+        opacity: 1 - Math.min(1, Math.abs(2 * cssX) / 100),
         transform: `translate3d(${cssX}px,0,0)`,
         transitionDuration: swiping ? 0 : '300ms',
         transitionProperty: 'opacity, transform',
