@@ -13,7 +13,7 @@ const MessageList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [messages, setMessages] = useState<Message[]>();
   const [pageToken, setPageToken] = useState<string | null>();
-  const [fetchLimit, setFetchLimit] = useState(25);
+  const [fetchLimit, setFetchLimit] = useState(75);
 
   const refs = useRef<(HTMLLIElement | null)[]>([]);
 
@@ -55,7 +55,7 @@ const MessageList: React.FC = () => {
     const height = refs.current[index]?.offsetHeight || 0;
 
     // Update styles to transition remaining messages up
-    refs.current.slice(index + 1, index + 6).forEach((el) => {
+    refs.current.slice(index + 1, index + 10).forEach((el) => {
       if (!el) return;
       el.style.transform = `translate3d(0,-${height}px,0)`;
     });
@@ -69,14 +69,8 @@ const MessageList: React.FC = () => {
   };
 
   const handleScroll = (evt) => {
-    const { clientHeight, scrollHeight, scrollTop } = evt.target;
-    // const pct = scrollTop / (scrollHeight - clientHeight) * 100
-    // if (pct > 75) {
-    //   fetchData(pageToken);
-    // }
-    console.info(scrollHeight - scrollTop, clientHeight);
-    console.log(clientHeight)
-    if ((scrollHeight - scrollTop) < (3 * clientHeight)) {
+    const { scrollHeight, scrollTop } = evt.target;
+    if ((scrollHeight - scrollTop) < (4 * window.outerHeight)) {
       fetchData(pageToken);
     }
   };
